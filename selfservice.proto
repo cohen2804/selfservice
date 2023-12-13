@@ -1,0 +1,79 @@
+//generate protobuf:
+// protoc --go_out=./generated --go_opt=paths=source_relative \
+// --go-grpc_out=./generated --go-grpc_opt=paths=source_relative \
+// grpcmain.proto
+
+syntax = "proto3";
+
+package selfservice;
+option go_package = "./generated";
+
+
+
+enum Status {
+  IN_PROCESS = 0;
+  FINISHED = 1;
+  FAILED = 2;
+}
+
+message User {
+  string UserName = 4;
+  string Subject = 5;
+}
+
+enum ActionType {
+  EXPORT = 0;
+  REMOVE = 1;
+}
+
+message ActionRecord {
+  string TenantID = 1;
+  string SessionID = 2;
+  ActionType Action = 3;
+  Status Status = 4;
+  User User = 5;
+  string StartedDate = 6;
+  string FinishedDate = 7;
+}
+
+message FilterOption{
+    string field = 1; // Field to filter by (e.g., "action")
+    string value = 2; // Value to filter for (e.g., "export")
+}
+
+message Query {
+  int32 PageToken = 1; // Token to retrieve the next page (optional)
+  int32 PageSize = 2; // Number of results per page (optional)
+  FilterOption Filter = 3; // Filter by specific field and value (optional)
+}
+
+
+message ListActionsRq {
+  string TenantID = 1;
+  Query Query = 2;
+}
+
+message ListActionsRs {
+  repeated ActionRecord records = 1;
+}
+
+message LogItem {
+  string Timestamp = 1;
+  string Message = 2;
+}
+
+message GetActionLogRq {
+  string TenantID = 1;
+  string SessionID = 2;
+}
+
+message GetActionLogRs {
+  repeated LogItem LogsList = 1;
+}
+
+service SessionRecordsService {
+  rpc ListActions (ListActionsRq) returns (ListActionsRs);
+  rpc GetActionLog (GetActionLogRq) returns (GetActionLogRs);
+}
+
+
