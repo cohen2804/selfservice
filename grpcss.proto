@@ -2,6 +2,7 @@
 // protoc --go_out=./generated --go_opt=paths=source_relative \
 // --go-grpc_out=./generated --go-grpc_opt=paths=source_relative \
 // grpcmain.proto
+// Git clone with PAT: git clone https://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@github.com/cohen2804/selfservice
 
 syntax = "proto3";
 
