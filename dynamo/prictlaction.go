@@ -28,7 +28,7 @@ func (r *Repository) GetActionItemsByTenant(req QueryRequest) (string, []ActionI
 	EntityID := formatKey(prictlactions_PK_prefix, "<tenantid>", req.Tenantid)
 	var pageToken map[string]types.AttributeValue
 	var err error
-	if req.PageToken != "" {
+	if len(req.PageToken) > 5 { //Ignore empty object: {}
 		pageToken, err = Deserialize(req.PageToken)
 		if err != nil {
 			return "", nil, errors.WithMessage(err, "GetDataByTenant:Deserialize page token")
@@ -68,7 +68,7 @@ func (r *Repository) GetFilteredActionItems(req QueryRequest) (string, []ActionI
 	partitionKeyValue := fmt.Sprintf("tenantid#%s#%s#%s", req.Tenantid, req.FilterOptions.Field, req.FilterOptions.Value) //e.g. tenantid#5901153D5DAD4DEB84F6E6D72FCA42B1#actiontype#EXPORT
 	var pageToken map[string]types.AttributeValue
 	var err error
-	if req.PageToken != "" {
+	if len(req.PageToken) > 5 { //Ignore empty object: {}
 		pageToken, err = Deserialize(req.PageToken)
 		if err != nil {
 			return "", nil, errors.WithMessage(err, "GetFilteredData:Deserialize page token")
