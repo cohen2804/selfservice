@@ -42,7 +42,7 @@ message FilterOption{
 }
 
 message Query {
-  int32 PageToken = 1; // Token to retrieve the next page (optional)
+  string PageToken = 1; // Token to retrieve the next page (optional)
   int32 PageSize = 2; // Number of results per page (optional)
   FilterOption Filter = 3; // Filter by specific field and value (optional)
 }
@@ -55,6 +55,7 @@ message ListActionsRq {
 
 message ListActionsRs {
   repeated ActionRecord records = 1;
+  string PageToken = 2;
 }
 
 message LogItem {

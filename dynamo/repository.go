@@ -23,7 +23,12 @@ type Repository struct {
 }
 
 func NewRepository() (*Repository, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	//cfg, err := config.LoadDefaultConfig(context.TODO())
+
+	//Ran's Account
+	awsProfile := "development"
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithSharedConfigProfile(awsProfile))
+	//////
 	if err != nil {
 		return nil, errors.WithMessage(err, "NewRepository: LoadDefaultConfig")
 	}

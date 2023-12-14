@@ -13,23 +13,23 @@ import (
 )
 
 type QueryRequest struct {
-	tenantid      string
-	filterOptions FilterOption //  List for filtering (optional)
-	pageSize      int32        // Number of results per page (optional)
-	pageToken     string       // Token to retrieve the next page (optional)
+	Tenantid      string
+	FilterOptions FilterOption //  List for filtering (optional)
+	PageSize      int32        // Number of results per page (optional)
+	PageToken     string       // Token to retrieve the next page (optional)
 }
 type FilterOption struct {
-	field string // Field to filter by (e.g., "action")
-	value string // Value to filter for (e.g., "export")
+	Field string // Field to filter by (e.g., "action")
+	Value string // Value to filter for (e.g., "export")
 }
 
 // Get data by tenantid without filters. QueryRequest should contains: tenantid,pagesize and pagetoken.
 func (r *Repository) GetActionItemsByTenant(req QueryRequest) (string, []ActionItem, error) {
-	EntityID := formatKey(prictlactions_PK_prefix, "<tenantid>", req.tenantid)
+	EntityID := formatKey(prictlactions_PK_prefix, "<tenantid>", req.Tenantid)
 	var pageToken map[string]types.AttributeValue
 	var err error
-	if req.pageToken != "" {
-		pageToken, err = Deserialize(req.tenantid)
+	if req.PageToken != "" {
+		pageToken, err = Deserialize(req.PageToken)
 		if err != nil {
 			return "", nil, errors.WithMessage(err, "GetDataByTenant:Deserialize page token")
 		}
@@ -43,7 +43,7 @@ func (r *Repository) GetActionItemsByTenant(req QueryRequest) (string, []ActionI
 		},
 		ScanIndexForward:  aws.Bool(false),
 		ExclusiveStartKey: pageToken,
-		Limit:             aws.Int32(PageSize(req.pageSize)),
+		Limit:             aws.Int32(PageSize(req.PageSize)),
 	})
 	if err != nil {
 		return "", nil, errors.WithMessage(err, "GetDataByTenant:Query")
@@ -63,13 +63,13 @@ func (r *Repository) GetActionItemsByTenant(req QueryRequest) (string, []ActionI
 // Get data by tenantid with additional filters. QueryRequest should contains: tenantid,pagesize and pagetoken.
 // filterOptions.field could  be one of: actionType, status or userName
 func (r *Repository) GetFilteredActionItems(req QueryRequest) (string, []ActionItem, error) { //TODO: Check if req.filter_options.field valid
-	indexName := fmt.Sprintf("tenantid%s-sessionid-index", req.filterOptions.field)                                       //e.g. tenantidactiontype-sessionid-index
-	partitionKeyName := fmt.Sprintf("tenantid%s", req.filterOptions.field)                                                //e.g. tenantidactiontype
-	partitionKeyValue := fmt.Sprintf("tenantid#%s#%s#%s", req.tenantid, req.filterOptions.field, req.filterOptions.value) //e.g. tenantid#5901153D5DAD4DEB84F6E6D72FCA42B1#actiontype#EXPORT
+	indexName := fmt.Sprintf("tenantid%s-sessionid-index", req.FilterOptions.Field)                                       //e.g. tenantidactiontype-sessionid-index
+	partitionKeyName := fmt.Sprintf("tenantid%s", req.FilterOptions.Field)                                                //e.g. tenantidactiontype
+	partitionKeyValue := fmt.Sprintf("tenantid#%s#%s#%s", req.Tenantid, req.FilterOptions.Field, req.FilterOptions.Value) //e.g. tenantid#5901153D5DAD4DEB84F6E6D72FCA42B1#actiontype#EXPORT
 	var pageToken map[string]types.AttributeValue
 	var err error
-	if req.pageToken != "" {
-		pageToken, err = Deserialize(req.tenantid)
+	if req.PageToken != "" {
+		pageToken, err = Deserialize(req.PageToken)
 		if err != nil {
 			return "", nil, errors.WithMessage(err, "GetFilteredData:Deserialize page token")
 		}
@@ -84,7 +84,7 @@ func (r *Repository) GetFilteredActionItems(req QueryRequest) (string, []ActionI
 		},
 		ScanIndexForward:  aws.Bool(true),
 		ExclusiveStartKey: pageToken,
-		Limit:             aws.Int32(PageSize(req.pageSize)),
+		Limit:             aws.Int32(PageSize(req.PageSize)),
 	})
 	if err != nil {
 		return "", nil, errors.WithMessage(err, "GetFilteredData:Query")

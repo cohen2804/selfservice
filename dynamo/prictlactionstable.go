@@ -23,7 +23,7 @@ const (
 	prictlactions_sortkeyname      = "RelationID"
 	// prictlactions attr
 	// prictlactions_tenantid           = "tenantid"
-	// prictlactions_actiontype         = "actiontype"
+	Prictlactions_actiontype = "actiontype"
 	// prictlactions_finishedtime       = "finishedtime"
 	// prictlactions_sessionid          = "sessionid"
 	// prictlactions_startedtime        = "startedtime"
