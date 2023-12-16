@@ -12,7 +12,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-// should implement the interface myPkgName.InvoicerServer
 type prictlGRPCServer struct {
 	repo *dynamodb.Repository
 	generated.UnimplementedSessionRecordsServiceServer
@@ -23,8 +22,15 @@ func NewPrictlGRPCServer(repo *dynamodb.Repository) *prictlGRPCServer {
 		repo: repo,
 	}
 }
-
 func (s *prictlGRPCServer) ListActions(ctx context.Context, in *generated.ListActionsRq) (*generated.ListActionsRs, error) {
+	err := s.repo.AddLogItem()
+	if err != nil {
+		fmt.Printf("AddLogItem: %s", err)
+	}
+	return nil, err
+}
+
+func (s *prictlGRPCServer) ListActionsProd(ctx context.Context, in *generated.ListActionsRq) (*generated.ListActionsRs, error) {
 	var err error
 	var items []dynamodb.ActionItem
 	var pageToken string
@@ -59,9 +65,22 @@ func (s *prictlGRPCServer) ListActions(ctx context.Context, in *generated.ListAc
 }
 
 func (s *prictlGRPCServer) GetActionLog(ctx context.Context, in *generated.GetActionLogRq) (*generated.GetActionLogRs, error) {
-	var logs []*generated.LogItem
-	logs = append(logs, &generated.LogItem{Message: "I am log"})
-	return &generated.GetActionLogRs{LogsList: logs}, nil
+	req := dynamodb.LogRequest{Tenantid: in.TenantID, Sessionid: in.SessionID}
+	items, err := s.repo.GetLogItem(req)
+	if err != nil {
+		fmt.Printf("GetActionLog: %s", err)
+	}
+	var res generated.GetActionLogRs
+	if len(items) > 0 {
+		for _, logitem := range items[0].LogData {
+			res.LogsList = append(res.LogsList, &generated.LogItem{
+				Message:   logitem.Message,
+				Timestamp: time.Unix(logitem.Time, 0).Format("02/01/2006 15:04"),
+				//Add type
+			})
+		}
+	}
+	return &res, nil
 }
 
 func main() {

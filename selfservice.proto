@@ -1,7 +1,7 @@
 //generate protobuf:
 // protoc --go_out=./generated --go_opt=paths=source_relative \
 // --go-grpc_out=./generated --go-grpc_opt=paths=source_relative \
-// grpcmain.proto
+// selfservice.proto
 
 syntax = "proto3";
 
@@ -9,7 +9,7 @@ package selfservice;
 option go_package = "./generated";
 
 
-
+// --- Actions history --- /
 enum Status {
   IN_PROCESS = 0;
   FINISHED = 1;
@@ -58,9 +58,17 @@ message ListActionsRs {
   string PageToken = 2;
 }
 
+// --- Logs --- /
+
+enum MessageType {
+  INFO = 0;
+  ERROR = 1;
+}
+
 message LogItem {
   string Timestamp = 1;
   string Message = 2;
+  MessageType LogType = 3;
 }
 
 message GetActionLogRq {
@@ -72,6 +80,7 @@ message GetActionLogRs {
   repeated LogItem LogsList = 1;
 }
 
+// --- RPC --- /
 service SessionRecordsService {
   rpc ListActions (ListActionsRq) returns (ListActionsRs);
   rpc GetActionLog (GetActionLogRq) returns (GetActionLogRs);

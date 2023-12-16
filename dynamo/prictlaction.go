@@ -63,9 +63,9 @@ func (r *Repository) GetActionItemsByTenant(req QueryRequest) (string, []ActionI
 // Get data by tenantid with additional filters. QueryRequest should contains: tenantid,pagesize and pagetoken.
 // filterOptions.field could  be one of: actionType, status or userName
 func (r *Repository) GetFilteredActionItems(req QueryRequest) (string, []ActionItem, error) { //TODO: Check if req.filter_options.field valid
-	indexName := fmt.Sprintf("tenantid%s-sessionid-index", req.FilterOptions.Field)                                       //e.g. tenantidactiontype-sessionid-index
-	partitionKeyName := fmt.Sprintf("tenantid%s", req.FilterOptions.Field)                                                //e.g. tenantidactiontype
-	partitionKeyValue := fmt.Sprintf("tenantid#%s#%s#%s", req.Tenantid, req.FilterOptions.Field, req.FilterOptions.Value) //e.g. tenantid#5901153D5DAD4DEB84F6E6D72FCA42B1#actiontype#EXPORT
+	indexName := fmt.Sprintf("tenantid%s-sessionid-index", req.FilterOptions.Field)
+	partitionKeyName := fmt.Sprintf("tenantid%s", req.FilterOptions.Field)
+	partitionKeyValue := fmt.Sprintf("tenantid#%s#%s#%s", req.Tenantid, req.FilterOptions.Field, req.FilterOptions.Value)
 	var pageToken map[string]types.AttributeValue
 	var err error
 	if len(req.PageToken) > 5 { //Ignore empty object: {}
@@ -134,7 +134,7 @@ func (r *Repository) UpdateActionItem(action ActionItem) error {
 	} else {
 		_, err := r.client.UpdateItem(context.TODO(), &dynamodb.UpdateItemInput{
 			TableName:                 aws.String(prictlactions),
-			Key:                       action.GetKey(),
+			Key:                       action.GetActionKey(),
 			ExpressionAttributeNames:  expr.Names(),
 			ExpressionAttributeValues: expr.Values(),
 			UpdateExpression:          expr.Update(),

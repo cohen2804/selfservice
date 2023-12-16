@@ -51,7 +51,7 @@ type ActionItem struct {
 	Username           string `dynamodbav:"username"`
 }
 
-func (a ActionItem) GetKey() map[string]types.AttributeValue {
+func (a ActionItem) GetActionKey() map[string]types.AttributeValue {
 	return map[string]types.AttributeValue{
 		PK_EntityID:   &types.AttributeValueMemberS{Value: formatKey(prictlactions_PK_prefix, "<tenantid>", fmt.Sprint(a.Tenantid))},
 		SK_RelationID: &types.AttributeValueMemberS{Value: formatKey(prictlactions_SK_prefix, "<tenantid>", a.Tenantid, "<sessionid>", fmt.Sprint(a.Sessionid))},
