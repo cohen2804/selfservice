@@ -10,9 +10,9 @@ const (
 	//prictlactions table
 	prictllog = "prictllog"
 	//PK Prefix
-	prictllog_PK_prefix = "tenantid#<tenantid>"
+	//prictllog_PK_prefix = "tenantid#<tenantid>"
 	// SK Prefix
-	prictllog_SK_prefix = "PRICTLACTIONS:tenantid#<tenantid>#sessionid#<sessionid>"
+	//prictllog_SK_prefix = "PRICTLACTIONS:tenantid#<tenantid>#sessionid#<sessionid>"
 
 	// keys
 	prictllog_partitionkeyname = "EntityID"
@@ -26,12 +26,11 @@ type LogEntry struct {
 }
 
 type LogItem struct {
-	EntityID   string `dynamodbav:"EntityID"`
-	RelationID string `dynamodbav:"RelationID"`
-	//LogData    []map[string]LogEntry `dynamodbav:"logdata"`
-	Tenantid  string     `dynamodbav:"tenantid"`
-	Sessionid string     `dynamodbav:"sessionid"`
-	LogData   []LogEntry `dynamodbav:"logdata"`
+	EntityID   string     `dynamodbav:"EntityID"`
+	RelationID string     `dynamodbav:"RelationID"`
+	Tenantid   string     `dynamodbav:"tenantid"`
+	Sessionid  string     `dynamodbav:"sessionid"`
+	LogData    []LogEntry `dynamodbav:"logdata"`
 }
 
 func (a LogItem) GetlogKey() map[string]types.AttributeValue {

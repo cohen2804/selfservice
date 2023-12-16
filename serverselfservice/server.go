@@ -22,15 +22,8 @@ func NewPrictlGRPCServer(repo *dynamodb.Repository) *prictlGRPCServer {
 		repo: repo,
 	}
 }
-func (s *prictlGRPCServer) ListActions(ctx context.Context, in *generated.ListActionsRq) (*generated.ListActionsRs, error) {
-	err := s.repo.AddLogItem()
-	if err != nil {
-		fmt.Printf("AddLogItem: %s", err)
-	}
-	return nil, err
-}
 
-func (s *prictlGRPCServer) ListActionsProd(ctx context.Context, in *generated.ListActionsRq) (*generated.ListActionsRs, error) {
+func (s *prictlGRPCServer) ListActions(ctx context.Context, in *generated.ListActionsRq) (*generated.ListActionsRs, error) {
 	var err error
 	var items []dynamodb.ActionItem
 	var pageToken string
@@ -76,7 +69,7 @@ func (s *prictlGRPCServer) GetActionLog(ctx context.Context, in *generated.GetAc
 			res.LogsList = append(res.LogsList, &generated.LogItem{
 				Message:   logitem.Message,
 				Timestamp: time.Unix(logitem.Time, 0).Format("02/01/2006 15:04"),
-				//Add type
+				LogType:   generated.MessageType(generated.MessageType_value[logitem.Type]),
 			})
 		}
 	}
