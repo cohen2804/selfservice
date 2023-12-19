@@ -23,7 +23,7 @@ type FilterOption struct {
 	Value string // Value to filter for (e.g., "export")
 }
 
-// Get data by tenantid without filters. QueryRequest should contains: tenantid,pagesize and pagetoken.
+// Get data by tenantid without filters. QueryRequest should contains: tenantid, pagesize and pagetoken.
 func (r *Repository) GetActionItemsByTenant(req QueryRequest) (string, []ActionItem, error) {
 	EntityID := formatKey(prictlactions_PK_prefix, "<tenantid>", req.Tenantid)
 	var pageToken map[string]types.AttributeValue
@@ -41,9 +41,13 @@ func (r *Repository) GetActionItemsByTenant(req QueryRequest) (string, []ActionI
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":partitionKeyValue": &types.AttributeValueMemberS{Value: EntityID},
 		},
-		ScanIndexForward:  aws.Bool(false),
-		ExclusiveStartKey: pageToken,
-		Limit:             aws.Int32(PageSize(req.PageSize)),
+		ExpressionAttributeNames: map[string]string{
+			"#status": "status",
+		},
+		ScanIndexForward:     aws.Bool(false),
+		ExclusiveStartKey:    pageToken,
+		Limit:                aws.Int32(PageSize(req.PageSize)),
+		ProjectionExpression: aws.String(GetActionProjectionExpression()),
 	})
 	if err != nil {
 		return "", nil, errors.WithMessage(err, "GetDataByTenant:Query")
@@ -57,10 +61,11 @@ func (r *Repository) GetActionItemsByTenant(req QueryRequest) (string, []ActionI
 	if err != nil {
 		return "", nil, errors.WithMessage(err, "GetDataByTenant:Serialize page token")
 	}
+	fmt.Println(a)
 	return newPageToken, a, nil
 }
 
-// Get data by tenantid with additional filters. QueryRequest should contains: tenantid,pagesize and pagetoken.
+// Get data by tenantid with additional filters. QueryRequest should contains: tenantid, pagesize, pagetoken and FilterOptions.
 // filterOptions.field could  be one of: actionType, status or userName
 func (r *Repository) GetFilteredActionItems(req QueryRequest) (string, []ActionItem, error) { //TODO: Check if req.filter_options.field valid
 	indexName := fmt.Sprintf("tenantid%s-sessionid-index", req.FilterOptions.Field)
@@ -82,9 +87,13 @@ func (r *Repository) GetFilteredActionItems(req QueryRequest) (string, []ActionI
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":partitionKeyValue": &types.AttributeValueMemberS{Value: partitionKeyValue},
 		},
-		ScanIndexForward:  aws.Bool(true),
-		ExclusiveStartKey: pageToken,
-		Limit:             aws.Int32(PageSize(req.PageSize)),
+		ExpressionAttributeNames: map[string]string{
+			"#status": "status",
+		},
+		ScanIndexForward:     aws.Bool(true),
+		ExclusiveStartKey:    pageToken,
+		Limit:                aws.Int32(PageSize(req.PageSize)),
+		ProjectionExpression: aws.String(GetActionProjectionExpression()),
 	})
 	if err != nil {
 		return "", nil, errors.WithMessage(err, "GetFilteredData:Query")
@@ -125,9 +134,9 @@ func (r *Repository) AddActionItem(action *ActionItem) error {
 // Update action item. tActionItem param must include: tenantid, sessionid, status, finishedtime
 func (r *Repository) UpdateActionItem(action ActionItem) error {
 	tenantidStatus := formatKey(prictlactions_TenantidStatus_prefix, "<tenantid>", action.Tenantid, "<status>", action.Status)
-	update := expression.Set(expression.Name("finishedtime"), expression.Value(action.Finishedtime))
-	update.Set(expression.Name("status"), expression.Value(action.Status))
-	update.Set(expression.Name("tenantidstatus"), expression.Value(tenantidStatus))
+	update := expression.Set(expression.Name(prictlactions_finishedtime), expression.Value(action.Finishedtime))
+	update.Set(expression.Name(prictlactions_status), expression.Value(action.Status))
+	update.Set(expression.Name(prictlactions_tenantidstatus), expression.Value(tenantidStatus))
 	expr, err := expression.NewBuilder().WithUpdate(update).Build()
 	if err != nil {
 		return errors.WithMessage(err, "UpdateActionItem: Build expression for update")

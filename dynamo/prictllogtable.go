@@ -17,6 +17,13 @@ const (
 	// keys
 	prictllog_partitionkeyname = "EntityID"
 	prictllog_sortkeyname      = "RelationID"
+	// prictlactions attr
+	prictllog_tenantid = "tenantid"
+	prictllog_session  = "sessionid"
+	prictllog_logdata  = "logdata"
+	prictllog_message  = "message"
+	prictllog_time     = "time"
+	prictllog_type     = "type"
 )
 
 type LogEntry struct {

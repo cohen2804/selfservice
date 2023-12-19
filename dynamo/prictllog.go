@@ -3,7 +3,6 @@ package dynamodb
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -12,12 +11,19 @@ import (
 	"github.com/pkg/errors"
 )
 
-type LogRequest struct {
+type LogItemRequest struct {
 	Tenantid  string
 	Sessionid string
 }
+type AddLogRequest struct {
+	Tenantid  string
+	Sessionid string
+	Message   string
+	Time      int64
+	Type      string
+}
 
-func (r *Repository) GetLogItem(req LogRequest) ([]LogItem, error) { //TODO: Check if req.filter_options.field valid
+func (r *Repository) GetLogItem(req LogItemRequest) ([]LogItem, error) {
 	partitionKeyValue := formatKey(prictlactions_PK_prefix, "<tenantid>", req.Tenantid)
 	sortKeyValue := formatKey(prictlactions_SK_prefix, "<tenantid>", req.Tenantid, "<sessionid>", req.Sessionid)
 
@@ -42,34 +48,33 @@ func (r *Repository) GetLogItem(req LogRequest) ([]LogItem, error) { //TODO: Che
 	return a, nil
 }
 
-// Add new action item.
-func (r *Repository) AddLogItem() error {
-
+// Add new action item log.
+func (r *Repository) AddLogItem(req AddLogRequest) error {
 	newLogEntry := map[string]types.AttributeValue{
-		"message": &types.AttributeValueMemberS{Value: "New log entry 3"},
-		"time":    &types.AttributeValueMemberN{Value: fmt.Sprint(time.Now().Unix())},
-		"type":    &types.AttributeValueMemberS{Value: "info"},
+		prictllog_message: &types.AttributeValueMemberS{Value: req.Message},
+		prictllog_time:    &types.AttributeValueMemberN{Value: fmt.Sprint(req.Time)},
+		prictllog_type:    &types.AttributeValueMemberS{Value: req.Type},
 	}
-	updateExpression := "SET #logdata = list_append(if_not_exists(#logdata, :empty_list), :new_log_entry)"
+	updateExpression := "SET #tenantid = :tenantid, #sessionid = :sessionid, #logdata = list_append(if_not_exists(#logdata, :empty_list), :new_log_entry)"
 	expressionAttributeValues := map[string]types.AttributeValue{
-		":new_log_entry": &types.AttributeValueMemberL{Value: []types.AttributeValue{&types.AttributeValueMemberM{Value: newLogEntry}}},
+		":tenantid":      &types.AttributeValueMemberS{Value: req.Tenantid},
+		":sessionid":     &types.AttributeValueMemberS{Value: req.Sessionid},
 		":empty_list":    &types.AttributeValueMemberL{Value: []types.AttributeValue{}},
+		":new_log_entry": &types.AttributeValueMemberL{Value: []types.AttributeValue{&types.AttributeValueMemberM{Value: newLogEntry}}},
 	}
-	expressionAttributeNames := map[string]string{"#logdata": "logdata"}
+	expressionAttributeNames := map[string]string{"#logdata": prictllog_logdata, "#tenantid": prictllog_tenantid, "#sessionid": prictllog_session}
 
-	entityidval := "tenantid#5901153D5DAD4DEB84F6E6D72FCA42B1"
-	relationidval := "PRICTLACTIONS:tenantid#5901153D5DAD4DEB84F6E6D72FCA42B1#sessionid#999a261e-2513-4475-85f5-4bd78dcfb5ef"
+	item := &LogItem{Tenantid: req.Tenantid, Sessionid: req.Sessionid}
 	_, err := r.client.UpdateItem(context.TODO(), &dynamodb.UpdateItemInput{
 		TableName:                 aws.String("prictllog"),
-		Key:                       map[string]types.AttributeValue{"EntityID": &types.AttributeValueMemberS{Value: entityidval}, "RelationID": &types.AttributeValueMemberS{Value: relationidval}},
+		Key:                       item.GetlogKey(),
 		UpdateExpression:          &updateExpression,
 		ExpressionAttributeValues: expressionAttributeValues,
 		ExpressionAttributeNames:  expressionAttributeNames,
 		ReturnValues:              types.ReturnValueAllNew,
 	})
-
 	if err != nil {
-		return errors.WithMessage(err, "AddActionItem: PutItem")
+		return errors.WithMessage(err, "AddLogItem: UpdateItem")
 	}
 	return err
 }

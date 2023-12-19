@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -22,17 +23,17 @@ const (
 	prictlactions_partitionkeyname = "EntityID"
 	prictlactions_sortkeyname      = "RelationID"
 	// prictlactions attr
-	// prictlactions_tenantid           = "tenantid"
-	Prictlactions_actiontype = "actiontype"
-	// prictlactions_finishedtime       = "finishedtime"
-	// prictlactions_sessionid          = "sessionid"
-	// prictlactions_startedtime        = "startedtime"
-	// prictlactions_status             = "status"
-	// prictlactions_subject            = "subject"
-	// prictlactions_username           = "username"
-	// prictlactions_tenantidactiontype = "tenantidactiontype"
-	// prictlactions_tenantidstatus     = "tenantidstatus"
-	// prictlactions_tenantidusername   = "tenantidusername"
+	prictlactions_tenantid           = "tenantid"
+	prictlactions_actiontype         = "actiontype"
+	prictlactions_finishedtime       = "finishedtime"
+	prictlactions_sessionid          = "sessionid"
+	prictlactions_startedtime        = "startedtime"
+	prictlactions_status             = "status"
+	prictlactions_subject            = "subject"
+	prictlactions_username           = "username"
+	prictlactions_tenantidactiontype = "tenantidactiontype"
+	prictlactions_tenantidstatus     = "tenantidstatus"
+	prictlactions_tenantidusername   = "tenantidusername"
 )
 
 type ActionItem struct {
@@ -56,4 +57,9 @@ func (a ActionItem) GetActionKey() map[string]types.AttributeValue {
 		PK_EntityID:   &types.AttributeValueMemberS{Value: formatKey(prictlactions_PK_prefix, "<tenantid>", fmt.Sprint(a.Tenantid))},
 		SK_RelationID: &types.AttributeValueMemberS{Value: formatKey(prictlactions_SK_prefix, "<tenantid>", a.Tenantid, "<sessionid>", fmt.Sprint(a.Sessionid))},
 	}
+}
+
+func GetActionProjectionExpression() string {
+	projectionAttributes := []string{prictlactions_tenantid, prictlactions_sessionid, prictlactions_actiontype, "#" + prictlactions_status, prictlactions_username, prictlactions_subject, prictlactions_startedtime, prictlactions_finishedtime}
+	return strings.Join(projectionAttributes, ", ")
 }

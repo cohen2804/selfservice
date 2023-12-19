@@ -58,7 +58,16 @@ func (s *prictlGRPCServer) ListActions(ctx context.Context, in *generated.ListAc
 }
 
 func (s *prictlGRPCServer) GetActionLog(ctx context.Context, in *generated.GetActionLogRq) (*generated.GetActionLogRs, error) {
-	req := dynamodb.LogRequest{Tenantid: in.TenantID, Sessionid: in.SessionID}
+	// logReq := dynamodb.AddLogRequest{
+	// 	Tenantid:  "5901153D5DAD4DEB84F6E6D72FCA42B1",
+	// 	Sessionid: "777a261e-2513-4475-85f5-4bd78dcfb5ef",
+	// 	Message:   "My log message 225",
+	// 	Type:      "error",
+	// 	Time:      time.Now().Unix(),
+	// }
+
+	// s.repo.AddLogItem(logReq)
+	req := dynamodb.LogItemRequest{Tenantid: in.TenantID, Sessionid: in.SessionID}
 	items, err := s.repo.GetLogItem(req)
 	if err != nil {
 		fmt.Printf("GetActionLog: %s", err)
